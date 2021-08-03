@@ -103,12 +103,10 @@ print("=====================================================")
 print("|-- HOSPITAL MANAGEMENT SYSTEM --|")
 print("=====================================================")
 mainmenu()
-# login=int(input("Login ID: "))
-# pin=int(input("Pin: "))
-# if login==1234 and pin==1234:
-#     mainmenu()
-# else:
-#     print("You have Entered Wrong Password")
-
-
+login=int(input("Login ID: "))
+pin=int(input("Pin: "))
+if login==1234 and pin==1234:
+    mainmenu()
+else:
+    print("You have Entered Wrong Password")
 
