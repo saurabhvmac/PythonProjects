@@ -1,7 +1,6 @@
 
 from os import system
 import sqlite3
-from contextlib import closing
 
 class Hospital: 
     def getpatientdata(self):
@@ -10,7 +9,7 @@ class Hospital:
         print("=====================================================")
         print("\t\t Enter the data for the Patient")
         self.p_id=int(input("Patient ID: "))
-        self.f_name=input("Name: ")
+        self.f_name=input("First Name: ")
         self.l_name=input("Last Name: ")
         self.p_sex=input("Sex: ")
         self.p_age=int(input("Age: "))
@@ -20,7 +19,7 @@ class Hospital:
 
 def showpatientdata(p_id, f_name, l_name, p_sex, p_age, p_blood, p_mobile, p_problem):
     print("=====================================================")
-    print("\t\t Pateint Information")
+    print("\t\t Patient Information")
     print("\n")
     print(f"  Patient ID:   {p_id} ")
     print(f"  FirstName:    {f_name} ")
@@ -57,18 +56,24 @@ def mainmenu():
     elif Choice==4:
         dischargepatient()
     else:
-        main()
+        system('exit()')
 
 def newpatient():
     system('cls')
     patient = Hospital()
     patient.getpatientdata()
     conn = sqlite3.connect('hospital.db')
-    conn.execute("INSERT INTO hospital (id,fname,lname,sex,age,blood,mobile,problem)\
-            VALUES (?,?,?,?,?,?,?,?)",(patient.p_id,patient.f_name,patient.l_name,patient.p_sex,patient.p_age,patient.p_blood,patient.p_mobile,patient.p_problem))
+    row = conn.execute("SELECT EXISTS(SELECT * from hospital WHERE id=?)",(patient.p_id,)).fetchone()
+    if row[0] == 0:
+        conn.execute("INSERT INTO hospital (id,fname,lname,sex,age,blood,mobile,problem)\
+                VALUES (?,?,?,?,?,?,?,?)",(patient.p_id,patient.f_name,patient.l_name,patient.p_sex,patient.p_age,patient.p_blood,patient.p_mobile,patient.p_problem))
+        print("\n Patient Added in Record  ")
+    else:
+        print("ID Already Exists")
+        input("\n\t Press Enter: ")
+        newpatient()
     conn.commit()
     conn.close()
-    print("\n Patient Added in Record  ")
     he=input("\n\t Press Enter: ")
     mainmenu()
 
@@ -79,21 +84,27 @@ def Showpatientbyid():
     print("=====================================================")
     patient_id = int(input("Enter Patient ID : "))
     conn = sqlite3.connect('hospital.db')
-    row = conn.execute("SELECT * FROM hospital WHERE id = ?",(patient_id,)).fetchall()
-    for r in row:
-        p_id = r[0]
-        f_name = r[1]
-        l_name = r[2]
-        p_sex = r[3]
-        p_age = r[4]
-        p_blood = r[5]
-        p_mobile = r[6]
-        p_problem = r[7]
+    row = conn.execute("SELECT EXISTS(SELECT * from hospital WHERE id=?)",(patient_id,)).fetchone()
+    if row[0] == 1:
+        row = conn.execute("SELECT * FROM hospital WHERE id = ?",(patient_id,)).fetchall()
+        for r in row:
+            p_id = r[0]
+            f_name = r[1]
+            l_name = r[2]
+            p_sex = r[3]
+            p_age = r[4]
+            p_blood = r[5]
+            p_mobile = r[6]
+            p_problem = r[7]
         showpatientdata(p_id, f_name, l_name, p_sex, p_age, p_blood, p_mobile, p_problem)
+        input("\n\t Press Enter: ")
+
+    else:
+        print(f"Patient witn Id: {patient_id} does not Exist ")
+        input("\n\t Press Enter: ")
+        Showpatientbyid()
     conn.commit()
     conn.close()    
-    print("\n Patient by id  ")
-    he=input("\n\t Press Enter: ")
     mainmenu()
 
 def showallpatiets():
@@ -124,13 +135,19 @@ def dischargepatient():
     print("=====================================================")
     patient_id = int(input("Enter Patient ID to discharge "))
     conn = sqlite3.connect('hospital.db')
-    conn.execute("DELETE from hospital where ID = ?",(patient_id,))
+    row = conn.execute("SELECT EXISTS(SELECT * from hospital WHERE id=?)",(patient_id,)).fetchone()
+    if row[0] == 1:
+        conn.execute("DELETE from hospital where ID = ?",(patient_id,))
+        print(f"Patient with ID {patient_id} Discharged")
+        input("\n\t Press Enter: ")
+    else:
+        print(f"Patient witn Id: {patient_id} does not Exist ")
+        input("\n\t Press Enter: ")
+        dischargepatient()
     print("\n")
-    print(f"Patient with ID {patient_id} Discharged")
     # discharge patinet go into a seperate table
     conn.commit()
     conn.close()
-    he=input("\n\t Press Enter: ")
     mainmenu()
 
 
@@ -145,5 +162,4 @@ def main():
         mainmenu()
     else:
         print("You have Entered Wrong Password")
-
 main()
